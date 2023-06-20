@@ -34,7 +34,7 @@ data "aws_availability_zones" "available" {}
 
 locals {
   name   = basename(path.cwd)
-  region = "us-west-2"
+  region = "eu-west-1"
 
   vpc_cidr = "10.0.0.0/16"
   azs      = slice(data.aws_availability_zones.available.names, 0, 3)
@@ -100,6 +100,7 @@ module "eks_blueprints_addons" {
   eks_cluster_version   = module.eks.cluster_version
   eks_oidc_provider     = module.eks.oidc_provider
   eks_oidc_provider_arn = module.eks.oidc_provider_arn
+  eks_worker_security_group_id = module.eks.node_security_group_id
 
   enable_argocd = true
   # This example shows how to set default ArgoCD Admin Password using SecretsManager with Helm Chart set_sensitive values.
@@ -112,7 +113,7 @@ module "eks_blueprints_addons" {
     ]
   }
 
-  argocd_manage_add_ons = true # Indicates that ArgoCD is responsible for managing/deploying add-ons
+  argocd_manage_add_ons = false # Indicates that ArgoCD is responsible for managing/deploying add-ons
   argocd_applications = {
     addons = {
       path               = "chart"
@@ -123,7 +124,7 @@ module "eks_blueprints_addons" {
       path               = "envs/dev"
       repo_url           = "https://github.com/aws-samples/eks-blueprints-workloads.git"
       add_on_application = false
-    }
+    } 
   }
 
   # Add-ons
@@ -133,6 +134,15 @@ module "eks_blueprints_addons" {
   enable_karpenter                     = true
   enable_metrics_server                = true
   enable_argo_rollouts                 = true
+  enable_tetrate_istio = true
+  tetrate_istio_version          = "1.18.0"
+ // tetrate_istio_base_helm_config = {}
+
+ 
+
+
+
+  
 
   tags = local.tags
 }
@@ -192,3 +202,49 @@ module "vpc" {
 
   tags = local.tags
 }
+# Copyright (c) Tetrate, Inc 2022 All Rights Reserved.
+
+/* module "base" {
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.32.0"
+
+  count = var.install_base ? 1 : 0
+
+  manage_via_gitops = var.manage_via_gitops
+  helm_config       = local.base_helm_config
+  addon_context     = var.addon_context
+}
+
+module "cni" {
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.32.0"
+
+  count = var.install_cni ? 1 : 0
+
+  manage_via_gitops = var.manage_via_gitops
+  helm_config       = local.cni_helm_config
+  addon_context     = var.addon_context
+
+  depends_on = [module.base]
+}
+
+module "istiod" {
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.32.0"
+
+  count = var.install_istiod ? 1 : 0
+
+  manage_via_gitops = var.manage_via_gitops
+  helm_config       = local.istiod_helm_config
+  addon_context     = var.addon_context
+
+}
+
+module "gateway" {
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons/helm-addon?ref=v4.32.0"
+
+  count = var.install_gateway ? 1 : 0
+
+  manage_via_gitops = var.manage_via_gitops
+  helm_config       = local.gateway_helm_config
+  addon_context     = var.addon_context
+
+  depends_on = [module.istiod]
+} */
